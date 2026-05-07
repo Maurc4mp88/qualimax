@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Qualimax</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div id="page-transition"><img src="/static/logo.png" class="transition-logo" onerror="this.src=''"></div>
+
+    <div class="login-box">
+        <!-- Substituído cadeado por Logo da Empresa -->
+        <img src="/static/logo.png" alt="Qualimax" style="width: 120px; margin-bottom: 20px; border-radius: 15px;" onerror="this.style.display='none'">
+        <h2>Acesso à Plataforma</h2>
+        <p style="color: #94a3b8; margin-bottom: 25px;">Entre com seu usuário</p>
+        
+        <form action="/entrar" method="POST">
+            <input name="nome" placeholder="Digite seu nome (ex: joao ou admin)" required autofocus>
+            <button type="submit"><i class="ph ph-sign-in"></i> Entrar</button>
+        </form>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

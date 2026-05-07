@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qualimax - Painel Geral</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div id="page-transition"><img src="/static/logo.png" class="transition-logo" onerror="this.src=''"></div>
+
+<header>
+    <div style="font-weight:800; color:var(--primary); font-size:1.2rem; display:flex; align-items:center;">
+        <img src="/static/logo.png" class="header-logo" onerror="this.src=''; this.className='ph ph-shield-check ph-xl'; this.style.marginRight='10px';"> 
+        Admin
+    </div>
+    <a href="/sair" style="color: var(--danger); text-decoration:none;"><i class="ph ph-sign-out ph-xl"></i></a>
+</header>
+
+<div class="admin-tabs">
+    {% if role == 'admin_A' %}<a href="/admin" class="active"><i class="ph ph-squares-four"></i> Painel Geral</a>{% endif %}
+    <a href="/admin/logistica"><i class="ph ph-truck"></i> Logística</a>
+    <a href="/admin/rankings"><i class="ph ph-chart-bar"></i> Rankings</a>
+</div>
+
+<div class="container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:25px; margin-top:20px;">
+    
+    <div class="card" style="background: linear-gradient(135deg, #1e293b, #0f172a); grid-column: 1 / -1; display:flex; flex-wrap:wrap; gap:20px;">
+        <div style="flex:1; min-width:250px;">
+            <h3><i class="ph ph-money"></i> Cofre Qualimax</h3>
+            <p style="color:#94a3b8; margin-top:10px;">Lucro Líquido Real:</p>
+            <h1 style="color:var(--success); font-size:2.5rem;">R$ {{ "%.2f"|format(lucro_total) }}</h1>
+            <p style="color:var(--danger); font-size:0.9rem; margin-top:10px; font-weight:bold;">
+                <i class="ph ph-receipt"></i> Total Gasto em Impostos: R$ {{ "%.2f"|format(impostos) }}
+            </p>
+        </div>
+        
+        <div style="flex:2; min-width:300px; position:relative; min-height: 250px;">
+            <canvas id="lucroChart"></canvas>
+        </div>
+    </div>
+
+    {% if role == 'admin_A' %}
+    <div class="card">
+        <h3><i class="ph ph-package"></i> Cadastrar / Editar Produto</h3>
+        <form action="/salvar_produto" method="POST" enctype="multipart/form-data" style="margin-top:15px;">
+            <input type="hidden" name="id" id="form-id">
+            <input name="nome" id="form-nome" placeholder="Nome do Produto" required>
+            <select name="categoria" id="form-cat" required>
+                <option value="">Selecione Categoria...</option>
+                {% for cat in categorias %} <option value="{{ cat['nome'] }}">{{ cat['nome'] }}</option> {% endfor %}
+            </select>
+            
+            <div style="display:flex; gap:10px; align-items: center;">
+                <input name="custo" id="form-custo" type="number" step="0.01" placeholder="Custo Bruto (R$)" required>
+                <input name="preco" id="form-preco" type="number" step="0.01" placeholder="Preço Final (R$)" required>
+            </div>
+
+            <input name="estoque" id="form-estoque" type="number" placeholder="Estoque Inicial" required>
+            <label style="color:#94a3b8;">Imagem (opcional na edição):</label>
+            <input type="file" name="imagem" accept="image/*">
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn-success" style="flex:1;"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                <button type="button" onclick="limparForm()" style="background:var(--border); width:auto;"><i class="ph ph-eraser"></i> Limpar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1; overflow-x:auto;">
+        <h3><i class="ph ph-list-dashes"></i> Estoque Cadastrado</h3>
+        <table style="width:100%; min-width:600px; text-align:left; border-collapse:collapse; margin-top:15px;">
+            <tr style="border-bottom:1px solid var(--border);">
+                <th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th>
+            </tr>
+            {% for p in produtos %}
+            <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px;">{{ p['nome'] }}</td>
+                <td>R$ {{ "%.2f"|format(p['preco_base']) }}</td>
+                <td>{{ p['estoque'] }}</td>
+                <td style="display:flex; gap:5px;">
+                    <button type="button" onclick="editarProduto({{ p['id'] }}, '{{ p['nome'] }}', '{{ p['categoria'] }}', {{ p['custo'] }}, {{ p['preco_base'] }}, {{ p['estoque'] }})" style="padding:8px; width:auto;"><i class="ph ph-pencil-simple"></i></button>
+                    <form action="/deletar_produto/{{ p['id'] }}" method="POST" style="margin:0;">
+                        <button class="btn-danger" style="padding:8px; width:auto;" onclick="return confirm('Excluir produto?')"><i class="ph ph-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+        <h3><i class="ph ph-users"></i> Gestão de Equipe</h3>
+        <form action="/salvar_funcionario" method="POST" style="display:flex; gap:15px; align-items:center; flex-wrap:wrap; margin-top:15px; padding-bottom:20px; border-bottom:1px solid var(--border);">
+            <input name="nome" placeholder="Login do Funcionário" required style="margin:0; max-width:300px;">
+            <select name="role" required style="margin:0; max-width:250px;">
+                <option value="admin_A">Nível A (Total)</option>
+                <option value="admin_B">Nível B (Logística/Rankings)</option>
+                <option value="admin_C">Nível C (Apenas Visualizar)</option>
+            </select>
+            <button style="width:auto; padding: 16px 25px;">Conceder Permissão</button>
+        </form>
+        
+        <table style="width:100%; text-align:left; border-collapse:collapse; margin-top:15px;">
+            <tr style="border-bottom:1px solid var(--border);"><th>Funcionário</th><th>Nível de Acesso</th><th>Ação</th></tr>
+            {% for f in funcionarios %}
+            <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px;"><b style="color:white;">{{ f['nome'] }}</b></td>
+                <td style="color:var(--primary);">Nível {{ f['role'][-1] }}</td>
+                <td>
+                    <form action="/deletar_funcionario/{{ f['nome'] }}" method="POST" style="margin:0;">
+                        <button class="btn-danger" style="padding:8px; width:auto;" onclick="return confirm('Remover acesso deste funcionário?')"><i class="ph ph-x-circle"></i> Revogar Acesso</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<script src="/static/script.js"></script>
+<script>
+    const ctx = document.getElementById('lucroChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ datas | tojson | safe }},
+            datasets: [{
+                label: 'Lucro (R$)',
+                data: {{ valores | tojson | safe }},
+                borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, tension: 0.3
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } }, 
+            scales: { y: { grid: { color: '#334155' } }, x: { grid: { display: false } } } 
+        }
+    });
+
+    function editarProduto(id, nome, cat, custo, preco, estoque) {
+        document.getElementById("form-id").value = id;
+        document.getElementById("form-nome").value = nome;
+        document.getElementById("form-cat").value = cat;
+        document.getElementById("form-custo").value = custo;
+        document.getElementById("form-preco").value = preco;
+        document.getElementById("form-estoque").value = estoque;
+        window.scrollTo(0, 0);
+    }
+
+    function limparForm() {
+        document.getElementById("form-id").value = "";
+        document.getElementById("form-nome").value = "";
+        document.getElementById("form-cat").value = "";
+        document.getElementById("form-custo").value = "";
+        document.getElementById("form-preco").value = "";
+        document.getElementById("form-estoque").value = "";
+    }
+</script>
+</body>
+</html>

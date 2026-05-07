@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qualimax - Rankings</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div id="page-transition"><img src="/static/logo.png" class="transition-logo" onerror="this.src=''"></div>
+
+<header>
+    <div style="font-weight:800; color:var(--primary); font-size:1.2rem; display:flex; align-items:center;">
+        <img src="/static/logo.png" class="header-logo" onerror="this.src=''; this.className='ph ph-shield-check ph-xl'; this.style.marginRight='10px';"> 
+        Admin Rankings
+    </div>
+    <a href="/sair" style="color: var(--danger); text-decoration:none;"><i class="ph ph-sign-out ph-xl"></i></a>
+</header>
+
+<div class="admin-tabs">
+    {% if role == 'admin_A' %}<a href="/admin"><i class="ph ph-squares-four"></i> Painel Geral</a>{% endif %}
+    <a href="/admin/logistica"><i class="ph ph-truck"></i> Logística</a>
+    <a href="/admin/rankings" class="active"><i class="ph ph-chart-bar"></i> Rankings</a>
+</div>
+
+<div class="container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:25px; margin-top:20px;">
+    
+    <div class="card">
+        <h3><i class="ph ph-star"></i> Produtos Campeões</h3>
+        <div style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+            {% for p in top_produtos %}
+            <div style="display:flex; align-items:center; gap:15px; background:var(--bg); padding:10px; border-radius:10px; border-left: 4px solid var(--primary);">
+                <img src="{{ p['imagem'] or '/static/uploads/default.png' }}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                <div>
+                    <b style="color:white; font-size:1.1rem;">{{ p['nome'] }}</b><br>
+                    <small style="color:var(--success); font-weight:bold;"><i class="ph ph-fire"></i> {{ p['qtd'] }} Vendas</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="ph ph-motorcycle"></i> Top Entregadores</h3>
+        <ol style="margin:15px 0 0 20px; color:#94a3b8; line-height:2;">
+            {% for e in top_entregadores %}
+            <li><b style="color:white; font-size:1.1rem;">{{ e['entregador_nome'] }}</b> - {{ e['entregas'] }} Entregas <br>
+                <small style="color:var(--success);">Repasse Total: R$ {{ "%.2f"|format(e['recebido']) }}</small></li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="card">
+        <h3><i class="ph ph-tag"></i> Categorias Lucrativas</h3>
+        <ol style="margin:15px 0 0 20px; color:#94a3b8; line-height:2;">
+            {% for c in top_categorias %}
+            <li><b style="color:white;">{{ c['categoria'] }}</b> (Gerou R$ {{ "%.2f"|format(c['lucro']) }})</li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

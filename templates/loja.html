@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qualimax Loja</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div id="page-transition"><img src="/static/logo.png" class="transition-logo" onerror="this.src=''"></div>
+
+<header>
+    <div style="display:flex; align-items:center; font-weight:800; font-size:1.2rem;">
+        <img src="/static/logo.png" class="header-logo" onerror="this.src=''; this.className='ph ph-storefront ph-xl'; this.style.color='var(--primary)'; this.style.marginRight='10px';">
+        Qualimax
+    </div>
+    <div style="background:var(--success); padding:8px 15px; border-radius:20px; font-weight:bold; font-size:1rem;">
+        R$ {{ "%.2f"|format(saldo) }}
+    </div>
+</header>
+
+<div class="container">
+    <form method="GET" action="/loja" class="flex-row" style="gap:10px;">
+        <input name="q" value="{{ busca }}" class="search-bar" placeholder="Buscar..." style="margin:0;">
+        <select name="ordenar" onchange="this.form.submit()" style="width: auto; margin:0; padding:15px; border-radius:25px;">
+            <option value="relevancia">Ordem</option><option value="barato">Baratos</option><option value="vendidos">Famosos</option>
+        </select>
+    </form>
+
+    <div class="cat-scroll" style="margin-top:20px;">
+        <a href="/loja" class="cat-chip {% if not cat_atual %}active{% endif %}">Todas</a>
+        {% for cat in categorias %}
+        <a href="/loja?categoria={{ cat['nome'] }}" class="cat-chip {% if cat_atual == cat['nome'] %}active{% endif %}">
+            <i class="ph {{ cat['icon'] }}"></i> {{ cat['nome'] }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <div id="produtos">
+    {% for p in produtos %}
+        <div class="card" style="position:relative;">
+            {% if p['is_destaque'] %}
+            <div style="position:absolute; top:-10px; right:-10px; background:var(--warning); color:black; padding:5px 10px; border-radius:15px; font-weight:900; font-size:0.8rem; box-shadow:0 4px 10px rgba(245, 158, 11, 0.5); z-index:10;">
+                <i class="ph-fill ph-fire"></i> Mais Vendido!
+            </div>
+            {% endif %}
+            
+            <img class="produto-img" src="{{ p['imagem'] or '/static/uploads/default.png' }}">
+            <h4>{{ p['nome'] }}</h4>
+            <div class="preco">R$ {{ "%.2f"|format(p['preco_final']) }}</div>
+            
+            <div class="estoque-info">
+                {% if p['estoque'] > 10 %}<i class="ph ph-check-circle" style="color:var(--success)"></i> Estoque: {{ p['estoque'] }}
+                {% elif p['estoque'] > 0 %}<i class="ph ph-warning-circle" style="color:var(--warning)"></i> Restam só {{ p['estoque'] }}!
+                {% else %}<i class="ph ph-x-circle" style="color:var(--danger)"></i> Esgotado{% endif %}
+            </div>
+
+            <button style="margin-top:auto;" onclick='addCarrinho({{ p["id"] }}, "{{ p["nome"] }}", {{ p["preco_final"] }}, {{ p["estoque"] }})' {% if p["estoque"] <= 0 %}disabled{% endif %}>
+                {% if p["estoque"] <= 0 %}Esgotado{% else %}<i class="ph ph-shopping-cart-simple"></i> Comprar{% endif %}
+            </button>
+        </div>
+    {% endfor %}
+    </div>
+
+    <div style="background:var(--card-bg); padding:25px; border-radius:20px; margin-top:40px; border:1px solid var(--border);">
+        <h3 style="margin-bottom:20px;"><i class="ph ph-shopping-cart"></i> Carrinho</h3>
+        <div id="carrinho-itens"></div>
+        <div id="resultado-frete" style="color:var(--warning); font-weight:bold; text-align:right; font-size:1.1rem; margin-top:15px;">Entrega: R$ 0.00</div>
+        
+        <div style="font-size: 1.8rem; text-align: right; margin: 20px 0; font-weight: 800;">
+            Total: R$ <span id="total-carrinho" style="color: var(--success);">0.00</span>
+        </div>
+        
+        <input id="endereco" placeholder="Endereço completo da entrega..." required style="margin-bottom: 15px;">
+        <button id="btn-finalizar" class="btn-success" onclick="finalizar()" style="padding: 20px; font-size:1.3rem;">Finalizar Compra</button>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/loja" class="nav-item active"><i class="ph ph-house ph-2x"></i> Início</a>
+    <a href="/perfil" class="nav-item"><i class="ph ph-user ph-2x"></i> Meus Pedidos</a>
+</nav>
+
+<div id="toast"></div>
+<script src="/static/script.js"></script>
+</body>
+</html>

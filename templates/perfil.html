@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qualimax - Meu Perfil</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+<div id="page-transition"><img src="/static/logo.png" class="transition-logo" onerror="this.src=''"></div>
+
+<header>
+    <div style="display:flex; align-items:center; font-weight:bold; font-size:1.1rem;">
+        <img src="/static/logo.png" class="header-logo" onerror="this.src=''; this.className='ph ph-user ph-xl'; this.style.color='var(--primary)'; this.style.marginRight='10px';">
+        Olá, {{ usuario|capitalize }}
+    </div>
+    <a href="/sair" style="color: var(--danger); font-weight:bold; text-decoration:none;">Sair</a>
+</header>
+
+<div class="container">
+    <div style="background:var(--card-bg); padding:20px; border-radius:15px; text-align:center; margin-bottom:20px;">
+        <p style="color:#94a3b8;">Saldo Qualimax</p>
+        <h2 style="color:var(--success); font-size:2rem;">R$ {{ "%.2f"|format(saldo) }}</h2>
+    </div>
+
+    <h3>📦 Minhas Encomendas</h3>
+    {% if not pedidos %}
+        <p style="color:#94a3b8; text-align:center; margin-top:20px;">Você ainda não fez nenhuma compra.</p>
+    {% else %}
+        {% for p in pedidos %}
+        <div class="card" style="margin-bottom:15px;">
+            <div style="display:flex; gap:15px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:15px;">
+                <img src="{{ p['imagem'] or '/static/uploads/default.png' }}" style="width:60px; height:60px; margin:0; border-radius:8px; object-fit:cover;">
+                <div style="flex:1;">
+                    <h4 style="margin:0;">{{ p['nome'] }} <span style="color:#94a3b8;">x{{ p['quantidade'] }}</span></h4>
+                    <small style="color:#94a3b8;">Comprado em: {{ p['data'][:10] }}</small><br>
+                    <b style="color:var(--success);">R$ {{ "%.2f"|format(p['valor_total_cliente']) }}</b>
+                </div>
+            </div>
+            
+            <div style="background:var(--bg); padding:15px; border-radius:10px;">
+                <b style="color:var(--text);"><i class="ph ph-map-pin"></i> Entregar em:</b> <span style="color:#94a3b8; font-size:0.9rem;">{{ p['endereco'] }}</span>
+                
+                <div style="margin-top:15px; padding:10px; border-radius:10px; font-weight:bold; text-align:center; 
+                    {% if p['status'] == 'Entregue' %}background:rgba(16, 185, 129, 0.2); color:var(--success);
+                    {% elif p['status'] == 'Cancelado' %}background:rgba(239, 68, 68, 0.2); color:var(--danger);
+                    {% elif p['status'] == 'A Caminho' %}background:rgba(59, 130, 246, 0.2); color:var(--primary);
+                    {% else %}background:var(--border); color:#94a3b8;{% endif %}">
+                    
+                    {% if p['status'] == 'Pendente' %}<i class="ph ph-clock ph-lg"></i> Aguardando Loja
+                    {% elif p['status'] == 'Em Separação' %}<i class="ph ph-package ph-lg"></i> Embalando
+                    {% elif p['status'] == 'A Caminho' %}<i class="ph ph-motorcycle ph-lg"></i> Saiu para Entrega
+                    {% elif p['status'] == 'Entregue' %}<i class="ph ph-check-circle ph-lg"></i> Pedido Entregue
+                    {% elif p['status'] == 'Cancelado' %}
+                        <i class="ph ph-x-circle ph-lg"></i> Cancelado<br>
+                        <small style="font-weight:normal; display:block; margin-top:5px;">{{ p['entregador_info'] }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<nav class="bottom-nav">
+    <a href="/loja" class="nav-item"><i class="ph ph-house ph-2x"></i> Início</a>
+    <a href="/perfil" class="nav-item active"><i class="ph ph-user ph-2x"></i> Meus Pedidos</a>
+</nav>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
